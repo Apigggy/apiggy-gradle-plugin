@@ -1,2 +1,2 @@
-# apiggy-gradle-plugin
-easy use apiggy with gradle
+# apiggs-gradle-plugin
+easy use apiggs with gradle
