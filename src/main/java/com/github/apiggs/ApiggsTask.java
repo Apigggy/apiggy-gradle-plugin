@@ -1,14 +1,16 @@
 package com.github.apiggs;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 
-import java.util.Set;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Gradle构建配置类
  * 配置项参考
- * {@link com.github.apiggs.Environment}
+ * {@link Environment}
  */
 public class ApiggsTask extends DefaultTask {
 
@@ -16,79 +18,80 @@ public class ApiggsTask extends DefaultTask {
     String title;
     String description;
     String out;
-    Set<String> sources;
-    Set<String> dependencies;
-    Set<String> jars;
-    Set<String> ignores;
+    //groovy传字符串，使用逗号分隔
+    String source;
+    String dependency;
+    String jar;
+    String ignore;
 
     @TaskAction
-    void work() {
-        System.out.println("hello world");
+    public void action() {
+
+        Project project = getProject();
+
+        Environment env = new Environment();
+        if (source != null) {
+            for (String dir : source.split(",")) {
+                Path path = resolve(dir);
+                env.source(path);
+                System.out.println("source "+path);
+            }
+        } else {
+            Path source = project.getProjectDir().toPath().resolve(Environment.DEFAULT_SOURCE_STRUCTURE);
+            System.out.println("source " + source);
+            env.source(source);
+        }
+        if (dependency != null) {
+            String[] dirs = dependency.split(",");
+            for (String dir : dirs) {
+                Path path = resolve(dir);
+                env.dependency(path);
+                System.out.println("dependency "+path);
+            }
+        }
+        if (jar != null) {
+            for (String dir : jar.split(",")) {
+                Path path = resolve(dir);
+                env.jar(path);
+                System.out.println("jar "+path);
+            }
+        }
+        if (id != null) {
+            env.project(id);
+        } else {
+            env.project(project.getName());
+        }
+        if (out != null) {
+            Path path = resolve(out);
+            env.out(path);
+        } else {
+            env.out(project.getBuildDir().toPath());
+        }
+        if (title != null) {
+            env.title(title);
+        } else {
+            env.title(project.getName());
+        }
+        if (description != null) {
+            env.description(description);
+        }
+        if (ignore != null) {
+            env.ignore(ignore.split(","));
+        }
+
+        new Apiggs(env).lookup().build();
+
+        System.out.println("\r\n\napiggs build on "+env.getOut());
+
     }
 
-    public String getId() {
-        return id;
+    private Path resolve(String dir){
+        Path path = Paths.get(dir);
+        if(path.isAbsolute()){
+            return path;
+        }else{
+            return getProject().getProjectDir().toPath().resolve(path);
+        }
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getOut() {
-        return out;
-    }
-
-    public void setOut(String out) {
-        this.out = out;
-    }
-
-    public Set<String> getSources() {
-        return sources;
-    }
-
-    public void setSources(Set<String> sources) {
-        this.sources = sources;
-    }
-
-    public Set<String> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(Set<String> dependencies) {
-        this.dependencies = dependencies;
-    }
-
-    public Set<String> getJars() {
-        return jars;
-    }
-
-    public void setJars(Set<String> jars) {
-        this.jars = jars;
-    }
-
-    public Set<String> getIgnores() {
-        return ignores;
-    }
-
-    public void setIgnores(Set<String> ignores) {
-        this.ignores = ignores;
-    }
 }
